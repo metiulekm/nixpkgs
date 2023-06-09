@@ -17,7 +17,7 @@ fi
 
 mountPoint=/mnt
 system=/nix/var/nix/profiles/system
-command=("$system/sw/bin/bash" "--login")
+bash_params=("--login")
 silent=0
 
 while [ "$#" -gt 0 ]; do
@@ -34,7 +34,8 @@ while [ "$#" -gt 0 ]; do
             exit 1
             ;;
         --command|-c)
-            command=("$system/sw/bin/bash" "-c" "$1")
+            bash_params=("-c" "$1")
+            unset command
             shift 1
             ;;
         --silent)
@@ -42,6 +43,7 @@ while [ "$#" -gt 0 ]; do
             ;;
         --)
             command=("$@")
+            unset bash_params
             break
             ;;
         *)
@@ -50,6 +52,10 @@ while [ "$#" -gt 0 ]; do
             ;;
     esac
 done
+
+if [[ ! -v command ]]; then
+    command=("$system/sw/bin/bash" "${bash_params[@]}")
+fi
 
 if [[ ! -e $mountPoint/etc/NIXOS ]]; then
     echo "$0: '$mountPoint' is not a NixOS installation" >&2
